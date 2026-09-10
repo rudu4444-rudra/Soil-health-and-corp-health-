@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini AI शेती मित्र व पीक रोग निदान</title>
+  <style>
+    :root {
+      --primary-green: #22c55e;
+      --dark-green: #15803d;
+      --card-bg: rgba(22, 27, 34, 0.88);
+      --border-color: #30363d;
+      --text-white: #f0f6fc;
+      --text-gray: #8b949e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: var(--text-white);
+      /* शेती/फार्मिंग थीम बॅकग्राउंड */
+      background: linear-gradient(rgba(10, 15, 10, 0.85), rgba(10, 15, 10, 0.85)),
+                  url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80') center/cover fixed no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      color: var(--primary-green);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card h2 {
+      font-size: 0.95rem;
+      color: var(--primary-green);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0d1117;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-white);
+      outline: none;
+      font-size: 0.85rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-green {
+      background: var(--primary-green);
+      color: #0d1117;
+    }
+
+    .btn-green:hover {
+      background: #16a34a;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary-green);
+      color: var(--primary-green);
+    }
+
+    /* सेन्सर डिस्प्ले ग्रिड */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .sensor-box {
+      background: #0d1117;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .sensor-box span {
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      display: block;
+    }
+
+    .sensor-box strong {
+      font-size: 1.1rem;
+      color: var(--primary-green);
+    }
+
+    /* कॅमेरा सेक्शन */
+    .preview-box {
+      width: 100%;
+      min-height: 180px;
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #0d1117;
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: auto;
+      display: none;
+      object-fit: contain;
+    }
+
+    .result-box {
+      background: #0d1117;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      display: none;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .badge-error {
+      border-color: #ef4444 !important;
+      color: #fca5a5;
+    }
+
+    .speaker-btn {
+      background: #1f6feb;
+      color: #fff;
+      margin-top: 8px;
+      padding: 8px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🌾 AI शेती मित्र व पीक निदान</h1>
+    <span id="btStatus" style="font-size: 0.75rem; color: #ef4444;">● HC-05 Disconnected</span>
+  </header>
+
+  <!-- १. Gemini API Key कार्ड -->
+  <div class="card">
+    <h2>🔑 Gemini API Setup</h2>
+    <input type="password" id="apiKey" class="input-field" placeholder="तुमची Gemini API Key पेस्ट करा...">
+  </div>
+
+  <!-- २. HC-05 ब्लूटूथ आणि सेन्सर कार्ड -->
+  <div class="card">
+    <h2>📡 IoT सॉईल मॉनिटर (HC-05)</h2>
+    <button class="btn btn-outline" id="btnConnectBT">📲 HC-05 ब्लूटूथ कनेक्ट करा</button>
+    
+    <div class="sensor-grid">
+      <div class="sensor-box">
+        <span>Soil pH</span>
+        <strong id="valPH">--</strong>
+      </div>
+      <div class="sensor-box">
+        <span>तापमान</span>
+        <strong id="valTemp">--°C</strong>
+      </div>
+      <div class="sensor-box">
+        <span>ओलावा</span>
+        <strong id="valMoist">--%</strong>
+      </div>
+    </div>
+
+    <div id="fertRecommendation" style="display:none; font-size: 0.85rem; color: #a3e635; margin-top: 4px;">
+      💡 <b>शिफारस केलेले खत:</b> <span id="fertText"></span>
+    </div>
+    <button class="btn speaker-btn" id="btnSpeakFert" style="display:none;">🔊 खताचा सल्ला ऐका</button>
+  </div>
+
+  <!-- ३. थेट कॅमेरा आणि पीक रोग तपासणी कार्ड -->
+  <div class="card">
+    <h2>📸 पीक / पान रोग निदान</h2>
+    
+    <!-- थेट मोबाईल कॅमेरा ओपन करण्यासाठी capture="environment" -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+    
+    <div class="preview-box" id="dropArea" onclick="document.getElementById('cameraInput').click()">
+      <span id="uploadPrompt" style="color: var(--text-gray); font-size: 0.85rem; text-align: center; padding: 10px;">
+        📷 कॅमेरा उघडून थेट पानाचा फोटो काढा<br><small style="color: #6e7681;">(टीप: फक्त झाडाचे पान किंवा पीक स्कॅन करा)</small>
+      </span>
+      <img id="imagePreview" alt="Preview">
+    </div>
+
+    <button class="btn btn-green" id="btnAnalyze">🔍 रोग तपासा (AI Analysis)</button>
+
+    <div class="result-box" id="resultBox"></div>
+    <button class="btn speaker-btn" id="btnSpeakResult" style="display:none;">🔊 रिपोर्ट मराठीत ऐका</button>
+  </div>
+</div>
+
+<script>
+  let base64Image = "";
+  let currentSoilData = { ph: 7.0, temp: 28, moisture: 45 };
+
+  // ================= 1. थेट कॅमेरा हाताळणी =================
+  const cameraInput = document.getElementById('cameraInput');
+  const imagePreview = document.getElementById('imagePreview');
+  const uploadPrompt = document.getElementById('uploadPrompt');
+
+  cameraInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        imagePreview.src = evt.target.result;
+        imagePreview.style.display = 'block';
+        uploadPrompt.style.display = 'none';
+        base64Image = evt.target.result.split(',')[1];
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // ================= 2. Web Bluetooth द्वारे HC-05 कनेक्शन =================
+  document.getElementById('btnConnectBT').addEventListener('click', async () => {
+    try {
+      // Serial Port Service UUID
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['00001101-0000-1000-8000-00805f9b34fb']
+      });
+
+      document.getElementById('btStatus').innerText = "● HC-05 Connected";
+      document.getElementById('btStatus').style.color = "#22c55e";
+
+      // ब्लूटूथ डेटा रिडींग सुरू (किंवा सिम्युलेशन)
+      simulateHC05Data();
+    } catch (err) {
+      alert("ब्लूटूथ कनेक्शन अयशस्वी किंवा रद्द झाले. डेमो व्हॅल्यू लोड करत आहे.");
+      simulateHC05Data();
+    }
+  });
+
+  function simulateHC05Data() {
+    // HC-05 कडून येणारा डेटा सिम्युलेट केला आहे
+    setInterval(() => {
+      const ph = (Math.random() * (7.8 - 5.8) + 5.8).toFixed(1);
+      const temp = (Math.random() * (34 - 24) + 24).toFixed(1);
+      const moist = Math.floor(Math.random() * (75 - 35) + 35);
+
+      currentSoilData = { ph, temp, moisture: moist };
+
+      document.getElementById('valPH').innerText = ph;
+      document.getElementById('valTemp').innerText = `${temp}°C`;
+      document.getElementById('valMoist').innerText = `${moist}%`;
+
+      evaluateFertilizer(ph);
+    }, 4000);
+  }
+
+  function evaluateFertilizer(ph) {
+    let advice = "";
+    if (ph < 6.0) {
+      advice = "माती आम्लयुक्त (Acidic) आहे. मातीचा समतोल राखण्यासाठी शेतात चुना (Lime/कॅल्शियम कार्बोनेट) टाकावा आणि सेंद्रिय खताचा वापर वाढवावा.";
+    } else if (ph > 7.5) {
+      advice = "माती अल्कधर्मी (Alkaline) आहे. जिप्सम (Gypsum) किंवा अमोनियम सल्फेट व फॉस्फरसयुक्त खतांचा वापर करावा.";
+    } else {
+      advice = "मातीचा pH उत्तम व संतुलित आहे. पिकाच्या वाढीनुसार संतुलित NPK (10:26:26 किंवा DAP) खतांचा वापर करावा.";
+    }
+
+    document.getElementById('fertText').innerText = advice;
+    document.getElementById('fertRecommendation').style.display = 'block';
+    document.getElementById('btnSpeakFert').style.display = 'flex';
+  }
+
+  // ================= 3. Gemini AI इंटिग्रेशन आणि रिजेक्शन प्रॉम्प्ट =================
+  document.getElementById('btnAnalyze').addEventListener('click', async () => {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const resultBox = document.getElementById('resultBox');
+    const speakResultBtn = document.getElementById('btnSpeakResult');
+
+    if (!apiKey) {
+      alert("कृपया तुमची खरी Gemini API Key टाका.");
+      return;
+    }
+    if (!base64Image) {
+      alert("कृपया आधी पिकाच्या पानाचा फोटो कॅमेऱ्याने काढा.");
+      return;
+    }
+
+    resultBox.style.display = 'block';
+    resultBox.classList.remove('badge-error');
+    resultBox.innerHTML = "⏳ Gemini AI फोटोची आणि सेन्सर डेटाची तपासणी करत आहे...";
+    speakResultBtn.style.display = 'none';
+
+    // पिकाशिवाय इतर फोटो रिजेक्ट करण्यासाठी कडक सूचना
+    const promptText = `
+      तुम्ही एक प्रगत कृषी तज्ज्ञ AI आहात.
+      नियम क्र. १: फोटोमध्ये कोणत्याही पिकाचे, झाडाचे किंवा पानाचे अस्तित्व आहे का ते बारकाईने तपासा. जर हा फोटो झाडाचा, पिकाचा किंवा पानाचा नसेल (उदा. माणसाचा चेहरा, वही-पुस्तक, खोली, प्राणी, रस्ता किंवा इतर वस्तू), तर इतर कोणतीही माहिती न देता फक्त आणि फक्त हाच मेसेज दाखवा:
+      "❌ अवैध फोटो! कृपया फक्त आजारी पिकाचे किंवा झाडाच्या पानाचा फोटो अपलोड करा."
+
+      जर फोटो योग्य पिकाचा किंवा पानाचा असेल, तर खालील मुद्यांमध्ये मराठीत स्पष्ट माहिती द्या:
+      १. पिकाचे नाव व ओळख
+      २. आढळलेला रोग / समस्या (लक्षणे)
+      ३. माती परिस्थिती (सध्याचा pH: ${currentSoilData.ph}, तापमान: ${currentSoilData.temp}°C, ओलावा: ${currentSoilData.moisture}%)
+      ४. योग्य उपाय व रासायनिक/सेंद्रिय फवारणी
+    `;
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: promptText },
+              { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        const reply = data.candidates[0].content.parts[0].text;
+        resultBox.innerHTML = reply.replace(/\n/g, "<br>");
+        speakResultBtn.style.display = 'flex';
+      } else {
+        throw new Error(data.error?.message || "विश्लेषण अयशस्वी झाले.");
+      }
+    } catch (err) {
+      resultBox.classList.add('badge-error');
+      resultBox.innerHTML = `⚠️ एरर: ${err.message}. कृपया API Key किंवा इंटरनेट कनेक्शन तपासा.`;
+    }
+  });
+
+  // ================= 4. टेक्स्ट-टू-स्पीच (आवाज) =================
+  function speakMarathi(text) {
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*#]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'mr-IN';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  document.getElementById('btnSpeakFert').addEventListener('click', () => {
+    speakMarathi(document.getElementById('fertText').innerText);
+  });
+
+  document.getElementById('btnSpeakResult').addEventListener('click', () => {
+    speakMarathi(document.getElementById('resultBox').innerText);
+  });
+</script>
+
+</body>
+</html>
