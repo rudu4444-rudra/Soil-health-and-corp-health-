@@ -230,6 +230,48 @@
   </div>
 
   <!-- ३. थेट कॅमेरा आणि पीक रोग तपासणी कार्ड -->
+    <!-- नवीन: सर्व पिकांची माहिती व खत शिफारस दर्शक -->
+  <div class="card">
+    <h2>🌾 पिकांची माहिती व मार्गदर्शक</h2>
+    <label style="font-size: 0.8rem; color: var(--text-gray);">पिक निवडा:</label>
+    <select id="cropSelector" class="input-field" onchange="showCropInfo()">
+      <option value="">-- पिक निवडा --</option>
+      <!-- Cereals & Millets -->
+      <option value="rice">तांदूळ / Rice (खरीप)</option>
+      <option value="wheat">गहू / Wheat (रब्बी)</option>
+      <option value="maize">मका / Maize (खरीप)</option>
+      <option value="jowar">ज्वारी / Jowar (खरीप)</option>
+      <option value="bajra">बाजरी / Bajra (खरीप)</option>
+      <!-- Pulses -->
+      <option value="gram">हरभरा / Gram (रब्बी)</option>
+      <option value="tur">तूर / Arhar (खरीप)</option>
+      <option value="moong">मूग / Moong (खरीप)</option>
+      <!-- Cash Crops -->
+      <option value="sugarcane">ऊस / Sugarcane</option>
+      <option value="cotton">कापूस / Cotton (खरीप)</option>
+      <option value="soybean">सोयाबीन / Soybean (खरीप)</option>
+      <option value="groundnut">भुईमूग / Groundnut (खरीप)</option>
+      <!-- Vegetables & Fruits -->
+      <option value="tomato">टोमॅटो / Tomato</option>
+      <option value="onion">कांदा / Onion</option>
+      <option value="chili">मिरची / Chili</option>
+      <option value="mango">आंबा / Mango</option>
+      <option value="banana">केळी / Banana</option>
+      <option value="turmeric">हळद / Turmeric</option>
+      <option value="ginger">आले / Ginger</option>
+    </select>
+
+    <div id="cropDetailDisplay" style="display:none; background:#0d1117; border:1px solid var(--border-color); border-radius:8px; padding:12px; font-size:0.85rem; line-height:1.6;">
+      <h3 id="cropTitle" style="color:var(--primary-green); font-size:1rem; margin-bottom:6px;"></h3>
+      <p>🌱 <b>हंगाम:</b> <span id="cropSeason"></span></p>
+      <p>🧪 <b>योग्य माती pH:</b> <span id="cropPH"></span></p>
+      <p>🌡️ <b>योग्य तापमान:</b> <span id="cropTemp"></span></p>
+      <p>💧 <b>आवश्यक ओलावा:</b> <span id="cropMoist"></span></p>
+      <p>🌿 <b>शिफारस केलेले खत:</b> <span id="cropKhat"></span></p>
+      <button class="btn speaker-btn" onclick="speakCropInfo()">🔊 पिकाची माहिती ऐका</button>
+    </div>
+  </div>
+
   <div class="card">
     <h2>📸 पीक / पान रोग निदान</h2>
     
@@ -252,6 +294,56 @@
 
 <script>
   let base64Image = "";
+    // पिकांचा संपूर्ण डेटाबेस (pH, तापमान, ओलावा, खते)
+  const cropsDatabase = {
+    rice: { title: "तांदूळ / भात (Rice)", season: "खरीप", ph: "5.5 - 6.5", temp: "22°C - 32°C", moist: "70% - 80%", khat: "युरिया, डीएपी (DAP), पोटॅश (NPK 100:50:50), झिंक सल्फेट." },
+    wheat: { title: "गहू (Wheat)", season: "रब्बी", ph: "6.0 - 7.5", temp: "15°C - 25°C", moist: "50% - 60%", khat: "डीएपी (DAP), युरिया (NPK 120:60:40), सल्फर." },
+    maize: { title: "मका (Maize)", season: "खरीप", ph: "6.0 - 7.2", temp: "21°C - 27°C", moist: "55% - 65%", khat: "NPK 120:60:40 आणि सूक्ष्म अन्नद्रव्ये (झिंक)." },
+    jowar: { title: "ज्वारी (Jowar)", season: "खरीप / रब्बी", ph: "6.5 - 7.5", temp: "26°C - 32°C", moist: "40% - 50%", khat: "सुफला 15:15:15, युरिया." },
+    bajra: { title: "बाजरी (Bajra)", season: "खरीप", ph: "6.5 - 8.0", temp: "28°C - 34°C", moist: "30% - 45%", khat: "शेणखत, डीएपी, युरिया (NPK 60:30:30)." },
+    gram: { title: "हरभरा / चणा (Gram)", season: "रब्बी", ph: "6.0 - 7.5", temp: "15°C - 25°C", moist: "35% - 45%", khat: "डीएपी (DAP), सिंगल सुपर फॉस्फेट (SSP), रायझोबियम कल्चर." },
+    tur: { title: "तूर / अरहर (Tur)", season: "खरीप", ph: "6.5 - 7.5", temp: "25°C - 35°C", moist: "40% - 50%", khat: "डीएपी (DAP), जिप्सम, बोरॉन." },
+    moong: { title: "मूग (Moong)", season: "खरीप / उन्हाळी", ph: "6.2 - 7.2", temp: "25°C - 32°C", moist: "40% - 50%", khat: "फॉस्फरसयुक्त खते (SSP/DAP), पीएसबी जिवाणू खत." },
+    sugarcane: { title: "ऊस (Sugarcane)", season: "वार्षिक (सर्व हंगाम)", ph: "6.5 - 7.5", temp: "20°C - 35°C", moist: "65% - 75%", khat: "10:26:26, युरिया, म्युरेट ऑफ पोटॅश, फेरस सल्फेट." },
+    cotton: { title: "कापूस (Cotton)", season: "खरीप", ph: "6.0 - 8.0", temp: "22°C - 34°C", moist: "50% - 60%", khat: "NPK 100:50:50, मॅग्नेशियम सल्फेट, बोरॉन फवारणी." },
+    soybean: { title: "सोयाबीन (Soybean)", season: "खरीप", ph: "6.0 - 7.0", temp: "20°C - 30°C", moist: "50% - 65%", khat: "12:32:16 किंवा 20:20:0:13, सल्फर." },
+    groundnut: { title: "भुईमूग (Groundnut)", season: "खरीप / उन्हाळी", ph: "6.0 - 7.0", temp: "22°C - 30°C", moist: "45% - 55%", khat: "जिप्सम (कॅल्शियमसाठी अनिवार्य), सिंगल सुपर फॉस्फेट." },
+    tomato: { title: "टोमॅटो (Tomato)", season: "सर्व हंगाम", ph: "6.0 - 6.8", temp: "18°C - 28°C", moist: "60% - 70%", khat: "19:19:19 (ठिबकद्वारे), कॅल्शियम नायट्रेट, 0:52:34." },
+    onion: { title: "कांदा (Onion)", season: "खरीप / रांगडा / रब्बी", ph: "6.0 - 7.0", temp: "15°C - 30°C", moist: "55% - 65%", khat: "डीएपी, पोटॅश, सल्फर (गंधक कांद्याच्या तिखटपणासाठी)." },
+    chili: { title: "मिरची (Chili)", season: "खरीप / उन्हाळी", ph: "6.5 - 7.5", temp: "20°C - 30°C", moist: "50% - 60%", khat: "सेंद्रिय खत, 10:26:26, मायक्रोन्युट्रिएंट्स फवारणी." },
+    mango: { title: "आंबा (Mango)", season: "बारमाही", ph: "5.5 - 7.5", temp: "24°C - 32°C", moist: "40% - 55%", khat: "शेणखत, 13:00:45, पोटॅशियम नायट्रेट, पॅक्लोब्युट्राझोल." },
+    banana: { title: "केळी (Banana)", season: "बारमाही", ph: "6.5 - 7.5", temp: "25°C - 35°C", moist: "70% - 80%", khat: "भरपूर शेणखत, पोटॅश (MOP), युरिया दर महिन्याला विभागून देणे." },
+    turmeric: { title: "हळद (Turmeric)", season: "खरीप", ph: "6.0 - 7.5", temp: "20°C - 30°C", moist: "60% - 70%", khat: "सेंद्रिय कंपोस्ट, नीम पेंड, NPK 60:50:120." },
+    ginger: { title: "आले (Ginger)", season: "खरीप", ph: "5.5 - 6.5", temp: "22°C - 30°C", moist: "65% - 75%", khat: "ट्रायकोडर्मा मिश्रित शेणखत, 19:19:19, पोटॅशियम." }
+  };
+
+  function showCropInfo() {
+    const selected = document.getElementById('cropSelector').value;
+    const displayBox = document.getElementById('cropDetailDisplay');
+
+    if (selected && cropsDatabase[selected]) {
+      const data = cropsDatabase[selected];
+      document.getElementById('cropTitle').innerText = data.title;
+      document.getElementById('cropSeason').innerText = data.season;
+      document.getElementById('cropPH').innerText = data.ph;
+      document.getElementById('cropTemp').innerText = data.temp;
+      document.getElementById('cropMoist').innerText = data.moist;
+      document.getElementById('cropKhat').innerText = data.khat;
+      displayBox.style.display = 'block';
+    } else {
+      displayBox.style.display = 'none';
+    }
+  }
+
+  function speakCropInfo() {
+    const selected = document.getElementById('cropSelector').value;
+    if (selected && cropsDatabase[selected]) {
+      const data = cropsDatabase[selected];
+      const speechText = `${data.title} बद्दल माहिती. योग्य हंगाम: ${data.season}. मातीचा pH: ${data.ph}. योग्य तापमान: ${data.temp}. ओलावा: ${data.moist}. शिफारस केलेले खत: ${data.khat}`;
+      speakMarathi(speechText);
+    }
+  }
+
   let currentSoilData = { ph: 7.0, temp: 28, moisture: 45 };
 
   // ================= 1. थेट कॅमेरा हाताळणी =================
